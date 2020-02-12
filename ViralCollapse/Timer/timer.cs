@@ -185,7 +185,7 @@ namespace ViralCollapse.Timer
         private static mapv3 GetHttpRequest(string areaAddress)
         {
             HttpClient httpClient = new HttpClient { BaseAddress = new Uri("http://api.map.baidu.com/") };
-            HttpResponseMessage httpResponseMessage = httpClient.GetAsync("geocoding/v3/?address=" + areaAddress + "&output=json&ak=SqEg0trDj2ajPGoxtQQHVSa9nAh3ChKS").GetAwaiter().GetResult();
+            HttpResponseMessage httpResponseMessage = httpClient.GetAsync("geocoding/v3/?address=" + areaAddress + "&output=json&ak=你的key").GetAwaiter().GetResult();
             var result = httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             mapv3 data = JsonConvert.DeserializeObject<mapv3>(result);
             return data;
