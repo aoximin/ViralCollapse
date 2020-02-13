@@ -106,6 +106,7 @@ namespace ViralCollapse.Timer
             foreach (var country in areaTrees)
             {
                 var CountryName = country.Name;
+                //|| CountryName != "台湾
                 if (CountryName != "中国")
                 {
                     //only china 其他国家不管
@@ -137,6 +138,10 @@ namespace ViralCollapse.Timer
                     echartsModelPClone.value = province.Total.Confirm;
                     pronvincedic.Add(echartsModelPClone);
 
+                    if (province.Name == "西藏"|| province.Name == "台湾"|| province.Name == "香港" || province.Name == "澳门")
+                    {
+                        fullPoint(echartsModel, province.Name, provinceName,province.Total.Confirm);
+                    }
 
                     //颜色
                     EchartsMapModel echartsMapModelClone = (EchartsMapModel)echartsMapModel.clone();
@@ -161,31 +166,37 @@ namespace ViralCollapse.Timer
                     echartsMapModels.Add(echartsMapModelClone);
                     foreach (var city in province.children)
                     {
-                        if (!dic.Keys.Contains(city.Name))
-                        {
-                            var fullName = provinceName + city.Name;
-                            mapv3 mapv3 = GetHttpRequest(fullName);
-                            if (mapv3.status == 0)
-                            {
-                                var location = mapv3.result.location;
-                                double[] d = new double[] { location.lng, location.lat  };
-                                dic.Add(city.Name, d);
-                            }
-                        }
-                        //后续需要优化部分
-                        EchartsModel echartsModelClone= (EchartsModel)echartsModel.clone();
-                        echartsModelClone.name = city.Name;
-                        echartsModelClone.value = city.Total.Confirm;
-                        echartsModels.Add(echartsModelClone);
+                        var fullName = provinceName + city.Name;
+                        fullPoint(echartsModel,city.Name, fullName,city.Total.Confirm);
                     }
                 }
             }
         }
 
+        private static void fullPoint(EchartsModel echartsModel, string name,string where,int confirm)
+        {
+            if (!dic.Keys.Contains(name))
+            {
+               
+                mapv3 mapv3 = GetHttpRequest(where);
+                if (mapv3.status == 0)
+                {
+                    var location = mapv3.result.location;
+                    double[] d = new double[] { location.lng, location.lat };
+                    dic.Add(name, d);
+                }
+            }
+            //后续需要优化部分
+            EchartsModel echartsModelClone = (EchartsModel)echartsModel.clone();
+            echartsModelClone.name = name;
+            echartsModelClone.value = confirm;
+            echartsModels.Add(echartsModelClone);
+        }
+
         private static mapv3 GetHttpRequest(string areaAddress)
         {
             HttpClient httpClient = new HttpClient { BaseAddress = new Uri("http://api.map.baidu.com/") };
-            HttpResponseMessage httpResponseMessage = httpClient.GetAsync("geocoding/v3/?address=" + areaAddress + "&output=json&ak=你的key").GetAwaiter().GetResult();
+            HttpResponseMessage httpResponseMessage = httpClient.GetAsync("geocoding/v3/?address=" + areaAddress + "&output=json&ak=SqEg0trDj2ajPGoxtQQHVSa9nAh3ChKS").GetAwaiter().GetResult();
             var result = httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             mapv3 data = JsonConvert.DeserializeObject<mapv3>(result);
             return data;
