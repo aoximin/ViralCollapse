@@ -112,9 +112,10 @@ namespace ViralCollapse.Timer
                     //only china 其他国家不管
                     continue;
                 }
-                var provinceRank = "省";
+               
                 foreach (var province in country.Children)
                 {
+                    var provinceRank = "省";
                     if (province.Name == "北京" || province.Name == "天津" || province.Name == "上海" || province.Name == "重庆")
                     {
                         provinceRank = "市";
@@ -125,7 +126,7 @@ namespace ViralCollapse.Timer
                     if (!dic.Keys.Contains(province.Name))
                     {
                         var fullName = provinceName + province.Name;
-                        mapv3 mapv3 = GetHttpRequest(fullName);
+                        mapv3 mapv3 = GetHttpRequest(fullName).Result;
                         if (mapv3.status == 0)
                         {
                             var location = mapv3.result.location;
@@ -167,18 +168,41 @@ namespace ViralCollapse.Timer
                     foreach (var city in province.children)
                     {
                         var fullName = provinceName + city.Name;
-                        fullPoint(echartsModel,city.Name, fullName,city.Total.Confirm);
+
+                        fullPoint(echartsModel, city.Name, fullName, city.Total.Confirm);
+                        
+                        
                     }
                 }
             }
+        }
+
+        private static void fullPointTest(EchartsModel echartsModel, string name, string where, int confirm)
+        {
+            //if (!dic.Keys.Contains(name))
+            //{
+
+            mapv3 mapv3 = GetHttpRequest(where).Result;
+            if (mapv3.status == 0)
+            {
+                var location = mapv3.result.location;
+                double[] d = new double[] { location.lng, location.lat };
+                dic.Add(name, d);
+            }
+            //}
+            //后续需要优化部分
+            EchartsModel echartsModelClone = (EchartsModel)echartsModel.clone();
+            echartsModelClone.name = name;
+            echartsModelClone.value = confirm;
+            echartsModels.Add(echartsModelClone);
         }
 
         private static void fullPoint(EchartsModel echartsModel, string name,string where,int confirm)
         {
             if (!dic.Keys.Contains(name))
             {
-               
-                mapv3 mapv3 = GetHttpRequest(where);
+
+                mapv3 mapv3 =  GetHttpRequest(where).Result;
                 if (mapv3.status == 0)
                 {
                     var location = mapv3.result.location;
@@ -193,10 +217,10 @@ namespace ViralCollapse.Timer
             echartsModels.Add(echartsModelClone);
         }
 
-        private static mapv3 GetHttpRequest(string areaAddress)
+        private static async Task<mapv3> GetHttpRequest(string areaAddress)
         {
             HttpClient httpClient = new HttpClient { BaseAddress = new Uri("http://api.map.baidu.com/") };
-            HttpResponseMessage httpResponseMessage = httpClient.GetAsync("geocoding/v3/?address=" + areaAddress + "&output=json&ak=SqEg0trDj2ajPGoxtQQHVSa9nAh3ChKS").GetAwaiter().GetResult();
+            HttpResponseMessage httpResponseMessage = await httpClient.GetAsync("geocoding/v3/?address=" + areaAddress + "&output=json&ak=SqEg0trDj2ajPGoxtQQHVSa9nAh3ChKS");
             var result = httpResponseMessage.Content.ReadAsStringAsync().GetAwaiter().GetResult();
             mapv3 data = JsonConvert.DeserializeObject<mapv3>(result);
             return data;
